@@ -1,27 +1,23 @@
-// File: Jenkinsfile
 pipeline {
-    agent any  // Ensure Jenkins node has Docker installed
+    agent any
 
     environment {
-        IMAGE_NAME = "my-nginx"
-        CONTAINER_NAME = "nginx-server"
-        DOCKER_PORT = "5000"
+        DOCKER_IMAGE = "my-html-site"
+        DOCKER_CONTAINER = "html_site_container"
+        DOCKER_PORT = "8080"
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout from GitHub') {
             steps {
-                checkout scm
+                git branch: 'main', url: 'https://github.com/ubexdigital/Simple-Website.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    // If you want a custom Dockerfile in repo:
-                    // sh "docker build -t ${IMAGE_NAME} ."
-                    // Or simply use official nginx image:
-                     sh "docker pull nginx:latest"
+                    sh "docker build -t ${DOCKER_IMAGE} ."
                 }
             }
         }
@@ -29,28 +25,18 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 script {
-                    // Stop and remove container if exists
+                    // Stop old container if running
                     sh """
-                    if [ \$(docker ps -aq -f name=${CONTAINER_NAME}) ]; then
-                        docker rm -f ${CONTAINER_NAME}
+                    if [ \$(docker ps -q -f name=${DOCKER_CONTAINER}) ]; then
+                        docker stop ${DOCKER_CONTAINER}
+                        docker rm ${DOCKER_CONTAINER}
                     fi
                     """
 
-                    // Run nginx container
-                    sh """
-                    docker run -d --name ${CONTAINER_NAME} -p ${DOCKER_PORT}:80 ${IMAGE_NAME}
-                    """
+                    // Run new container
+                    sh "docker run -d --name ${DOCKER_CONTAINER} -p ${DOCKER_PORT}:80 ${DOCKER_IMAGE}"
                 }
             }
-        }
-    }
-
-    post {
-        success {
-            echo "✅ Nginx deployed successfully on Docker node"
-        }
-        failure {
-            echo "❌ Deployment failed"
         }
     }
 }
