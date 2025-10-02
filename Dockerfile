@@ -1,11 +1,43 @@
-# Use official Nginx image as base
-FROM nginx:alpine
+pipeline {
+    agent any
 
-# Copy website files to Nginx default html directory
-COPY . /usr/share/nginx/html
+    environment {
+        // Change these for your setup
+        DOCKER_HOST = "tcp://192.168.1.11:2375"   // Remote Docker daemon
+        IMAGE_NAME = "my-html-site"
+        IMAGE_TAG  = "latest"
+        GIT_REPO   = "https://github.com/ubexdigital/Simple-Website.git"
+    }
 
-# Expose port 80
-EXPOSE 80
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: "${env.GIT_REPO}"
+            }
+        }
 
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh """
+                        docker -H ${DOCKER_HOST} build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                    """
+                }
+            }
+        }
+
+        stage('Deploy Container') {
+            steps {
+                script {
+                    sh """
+                        # Stop old container if running
+                        docker -H ${DOCKER_HOST} rm -f ${IMAGE_NAME} || true
+                        
+                        # Run new container
+                        docker -H ${DOCKER_HOST} run -d --name ${IMAGE_NAME} -p 80:80 ${IMAGE_NAME}:${IMAGE_TAG}
+                    """
+                }
+            }
+        }
+    }
+}
