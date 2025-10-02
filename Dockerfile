@@ -19,9 +19,9 @@ pipeline {
             steps {
                 script {
                     // If you want a custom Dockerfile in repo:
-                    sh "docker build -t ${IMAGE_NAME} ."
+                    // sh "docker build -t ${IMAGE_NAME} ."
                     // Or simply use official nginx image:
-                    // sh "docker pull nginx:latest"
+                     sh "docker pull nginx:latest"
                 }
             }
         }
