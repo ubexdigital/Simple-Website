@@ -1,8 +1,6 @@
 // File: Jenkinsfile
 pipeline {
-    agent {
-        label 'docker-node'  // Ensure Jenkins node has Docker installed
-    }
+    agent any  // Ensure Jenkins node has Docker installed
 
     environment {
         IMAGE_NAME = "my-nginx"
