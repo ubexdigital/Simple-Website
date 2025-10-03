@@ -4,7 +4,7 @@ pipeline {
     environment {
         // Change these for your setup
         DOCKER_HOST = "tcp://192.168.1.11:2375"   // Remote Docker daemon
-        IMAGE_NAME = "my-html-site"
+        IMAGE_NAME = "my-html-site-v1"
         IMAGE_TAG  = "latest"
         GIT_REPO   = "https://github.com/ubexdigital/Simple-Website.git"
     }
